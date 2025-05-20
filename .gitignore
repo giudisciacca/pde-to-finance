@@ -1,0 +1,17 @@
+# gitignore files
+*.png
+.venv*
+build/*
+.idea
+*.npy
+*.pdf
+__pycache__
+*core_old*
+*.egg*
+*.zip
+*_pth
+*crdownload
+src/core/data/
+src/core/preprocess/data/
+src/core/preprocess/git-filter-repo.txt
+src/core/find_grid/checkpoints
