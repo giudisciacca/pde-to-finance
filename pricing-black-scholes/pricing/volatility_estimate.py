@@ -48,7 +48,7 @@ class VolatilityEstimate:
         out = np.concatenate((np.full(window_size - 1, np.nan), np.sqrt(out)))
         return out   
     
-    def exponential_moving_average(self, alpha):
+    def exponential_moving_average(self, alpha, method = 'riskmetric'):
         """
         Calculate the exponential moving average of the signal with a smoothing factor alpha.
         """
@@ -56,22 +56,29 @@ class VolatilityEstimate:
             raise ValueError("Alpha must be between 0 and 1.")
         
         ema = np.zeros_like(self._returns)
-
-        ema[0] = 0 
-        for n in range(0, len(self._returns)):
-            i = np.arange(0, n + 1)
-            ema[n] = (1-alpha) * np.sum( (alpha**(n-i)) * self._returns[i]**2)
+        if method=='riskmetric':
+            ema[0] = (1-alpha) * self._returns[0]**2
+            for n in range(1, len(self._returns)):
+                ema[n] = alpha * ema[n-1]+(1-alpha) * self._returns[n]**2
+        else:
+            for n in range(0, len(self._returns)):
+                i = np.arange(0, n + 1)
+                ema[n] = (1-alpha) * np.sum( (alpha**(n-i)) * self._returns[i]**2)
         return np.sqrt(ema)
     
-    def garch(self, window_size):
+    def garch_volatility(self, alpha_arch, alpha_exp, avg_volatility_sq = None ):
         """
         Calculate the GARCH (Generalized Autoregressive Conditional Heteroskedasticity) volatility estimate.
         This is a simplified version and may not be suitable for all use cases.
         """
-        garch_volatility = np.zeros_like(self._returns)
-        raise NotImplementedError("GARCH model implementation is not provided in this example.")
-        return garch_volatility[window_size:]
-
+        garch_volatility_sq = np.zeros_like(self._returns)
+         
+        if avg_volatility_sq is None:
+            avg_volatility_sq = np.var(self._returns)
+        for n in range(0, len(self._returns)):
+            garch_volatility_sq[n] = alpha_arch*avg_volatility_sq+(1-alpha_arch)* (alpha_exp*garch_volatility_sq[n-1] + (1-alpha_exp)*self._returns[n]**2 )
+        return np.sqrt(garch_volatility_sq)
+    
     def arch_volatility(self, alpha = 0.05, avg_volatility_sq = None):
         """
         Calculate the ARCH (Autoregressive Conditional Heteroskedasticity) volatility estimate.
@@ -88,6 +95,19 @@ class VolatilityEstimate:
             arch_volatility_sq[i] = alpha * avg_volatility_sq + (1 - alpha) * np.var(self._returns[:i+1])
 
         return  np.sqrt(arch_volatility_sq)
+    def future_ewma_volatility():
+        pass
+    def future_garch_volatilty():
+        pass
+    def future_close2close_volatility():
+        pass
+    def future_parkinson_volatility():
+        pass
+    def future_garman_and_klass_volatility():
+        pass
+    def future_rogers_and_satchell_volatility():
+        pass
+
     
     def __repr__(self):
         return f"VolatilityEstimate(time={self.time}, signal={self.signal})"
