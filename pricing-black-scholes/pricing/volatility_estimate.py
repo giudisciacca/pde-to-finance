@@ -95,6 +95,7 @@ class VolatilityEstimate:
             arch_volatility_sq[i] = alpha * avg_volatility_sq + (1 - alpha) * np.var(self._returns[:i+1])
 
         return  np.sqrt(arch_volatility_sq)
+    
     def future_ewma_volatility():
         pass
     def future_garch_volatilty():
