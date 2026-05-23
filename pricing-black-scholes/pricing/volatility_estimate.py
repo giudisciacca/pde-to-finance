@@ -63,14 +63,18 @@ class VolatilityEstimate:
             ema[n] = (1-alpha) * np.sum( (alpha**(n-i)) * self._returns[i]**2)
         return np.sqrt(ema)
     
-    def garch(self, window_size):
+    def garch(self, alpha=0.1, lamda = 0.9):
         """
         Calculate the GARCH (Generalized Autoregressive Conditional Heteroskedasticity) volatility estimate.
         This is a simplified version and may not be suitable for all use cases.
         """
-        garch_volatility = np.zeros_like(self._returns)
-        raise NotImplementedError("GARCH model implementation is not provided in this example.")
-        return garch_volatility[window_size:]
+        garch_volatility_sq = np.zeros_like(self._returns)
+        if garch_volatility_sq is None:
+            garch_volatility_sq[0] = np.var(self._returns)
+        
+        for i in range(1, len(self._returns)):
+            garch_volatility_sq[i] = alpha * garch_volatility_sq[i-1] + (1 - alpha) * ( lamda * garch_volatility_sq[i-1] + (1-lamda) * self._returns[i-1]**2)
+        return np.sqrt(garch_volatility_sq)
 
     def arch_volatility(self, alpha = 0.05, avg_volatility_sq = None):
         """

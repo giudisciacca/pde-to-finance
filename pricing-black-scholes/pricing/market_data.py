@@ -14,6 +14,7 @@ class simulation:
         self.S0 = S0
         self.t0 = t0
         self.T = T
+    
     def forward_euler(self):
         # dS = drift * S * dt + volatility * dX
         time = np.arange(self.t0, self.T, self.dt, dtype=np.float64) 
@@ -26,6 +27,7 @@ class simulation:
         for i in range(1,len(time)):
             out_value[i] =  out_value[i-1]*(1+self.drift*self.dt + self.volatility[i-1]*normal_set[i-1]*sqrt_dt)
         return time, out_value
+    
     def forward(self):
         # dS = drift * S * dt + volatility * dX
         time = np.arange(self.t0, self.T, self.dt, dtype=np.float64) 
