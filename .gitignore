@@ -4,7 +4,6 @@
 build/*
 .idea
 *.npy
-*.pdf
 __pycache__
 *core_old*
 *.egg*

@@ -48,7 +48,7 @@ class VolatilityEstimate:
         out = np.concatenate((np.full(window_size - 1, np.nan), np.sqrt(out)))
         return out   
     
-    def exponential_moving_average(self, alpha):
+    def exponential_moving_average(self, alpha, method = 'riskmetric'):
         """
         Calculate the exponential moving average of the signal with a smoothing factor alpha.
         """
@@ -56,14 +56,19 @@ class VolatilityEstimate:
             raise ValueError("Alpha must be between 0 and 1.")
         
         ema = np.zeros_like(self._returns)
-
-        ema[0] = 0 
-        for n in range(0, len(self._returns)):
-            i = np.arange(0, n + 1)
-            ema[n] = (1-alpha) * np.sum( (alpha**(n-i)) * self._returns[i]**2)
+        if method=='riskmetric':
+            ema[0] = (1-alpha) * self._returns[0]**2
+            for n in range(1, len(self._returns)):
+                ema[n] = alpha * ema[n-1]+(1-alpha) * self._returns[n]**2
+        else:
+            for n in range(0, len(self._returns)):
+                i = np.arange(0, n + 1)
+                ema[n] = (1-alpha) * np.sum( (alpha**(n-i)) * self._returns[i]**2)
         return np.sqrt(ema)
     
+
     def garch(self, alpha=0.1, lamda = 0.9):
+
         """
         Calculate the GARCH (Generalized Autoregressive Conditional Heteroskedasticity) volatility estimate.
         This is a simplified version and may not be suitable for all use cases.
@@ -92,6 +97,20 @@ class VolatilityEstimate:
             arch_volatility_sq[i] = alpha * avg_volatility_sq + (1 - alpha) * np.var(self._returns[:i+1])
 
         return  np.sqrt(arch_volatility_sq)
+    
+    def future_ewma_volatility():
+        pass
+    def future_garch_volatilty():
+        pass
+    def future_close2close_volatility():
+        pass
+    def future_parkinson_volatility():
+        pass
+    def future_garman_and_klass_volatility():
+        pass
+    def future_rogers_and_satchell_volatility():
+        pass
+
     
     def __repr__(self):
         return f"VolatilityEstimate(time={self.time}, signal={self.signal})"
