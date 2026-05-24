@@ -73,13 +73,29 @@ class VolatilityEstimate:
         Calculate the GARCH (Generalized Autoregressive Conditional Heteroskedasticity) volatility estimate.
         This is a simplified version and may not be suitable for all use cases.
         """
+        estimated_garch_volatility_sq = np.zeros_like(self._returns)
         garch_volatility_sq = np.zeros_like(self._returns)
-        if garch_volatility_sq is None:
-            garch_volatility_sq[0] = np.var(self._returns)
         
+        estimated_garch_volatility_sq = np.var(self._returns)
+        
+        garch_volatility_sq[0] = estimated_garch_volatility_sq; 
         for i in range(1, len(self._returns)):
-            garch_volatility_sq[i] = alpha * garch_volatility_sq[i-1] + (1 - alpha) * ( lamda * garch_volatility_sq[i-1] + (1-lamda) * self._returns[i-1]**2)
+            garch_volatility_sq[i] = alpha * estimated_garch_volatility_sq + (1 - alpha) * ( lamda * garch_volatility_sq[i-1] + (1-lamda) * self._returns[i-1]**2)
         return np.sqrt(garch_volatility_sq)
+
+    def garch_prediction(self, time_horizon, alpha=0.1, lamda = 0.9):
+        garch_past_volatility_sq = self.garch(alpha, lamda)**2
+        
+        estimated_garch_volatility_sq = np.var(self._returns)
+
+        ks = np.floor((time_horizon-self.time[-1]) / self.dt)
+        garch_future_volatility_sq = np.zeros_like(ks)
+
+        nu = alpha/(1-(1-alpha)*(1-lamda))
+
+        for i, k in enumerate(ks):
+            garch_future_volatility_sq[i] = estimated_garch_volatility_sq + (garch_past_volatility_sq[-1] - estimated_garch_volatility_sq) * (1-nu)**k
+        return np.sqrt(garch_future_volatility_sq)
 
     def arch_volatility(self, alpha = 0.05, avg_volatility_sq = None):
         """
