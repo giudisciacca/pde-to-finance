@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.special
-from  options_classes import Option, Asset
+from  pricing.options_classes import Option, Asset
 
 class BlackScholes:
     """
