@@ -44,3 +44,40 @@ class BlackScholes:
 
 def normal_cdf(x):
     return 0.5 * (1 + scipy.special.erf(x / np.sqrt(2)))    
+
+
+def ddt_matrix(length, dt):
+    id = np.identity(length);
+
+    return 
+def dds_matrix():
+    pass
+
+def d2ds2_matrix():
+    pass
+
+
+class solver:
+    def __init__(self)
+        return
+
+    def crank_nicolson_solver(length, dt, ds, volatility, rate_of_interest, option):
+        pass
+
+    def runge_kutta_solver(length, dt, ds, volatility, rate_of_interest, option):
+        pass
+
+    def full_discretization_solver(length, dt, ds, volatility, rate_of_interest, option):
+        # get ddt
+
+        # get dds
+
+        # get d2ds2
+
+        # set up matrix A
+
+        # set up matrix B
+
+        # solve for V at each time step
+
+        return
