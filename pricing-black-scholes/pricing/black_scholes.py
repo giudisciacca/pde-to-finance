@@ -50,34 +50,48 @@ def ddt_matrix(length, dt):
     id = np.identity(length);
 
     return 
-def dds_matrix():
-    pass
-
-def d2ds2_matrix():
-    pass
-
+def dds_matrix(length, ds, mode = 'forward'):
+    if mode == 'forward':
+        dds = np.diag(-np.ones(length-1), 0) + np.diag(np.ones(length-1), 1)
+        dds = dds / ds
+    else: 
+        NotImplementedError("Only forward mode is implemented for d/dS operator.")
+    return  dds
+    
+def d2ds2_matrix(length, ds):
+    d2ds2 = np.diag(np.ones(1), -1) + np.diag(-2*np.ones(1), 0) + np.diag(np.ones(1), 1)
+    d2ds2 = d2ds2 / (ds**2)
+    return d2ds2
+    
 
 class solver:
-    def __init__(self)
+    def __init__(self):
         return
 
     def crank_nicolson_solver(length, dt, ds, volatility, rate_of_interest, option):
         pass
 
-    def runge_kutta_solver(length, dt, ds, volatility, rate_of_interest, option):
-        pass
 
-    def full_discretization_solver(length, dt, ds, volatility, rate_of_interest, option):
-        # get ddt
 
-        # get dds
+    def full_discretization_solver(time_length, length, dt, ds, volatility, rate_of_interest, option, theta = 0.5   ):
+        # d/dt V + 0.5* volatility^2 * S^2 * d^2/dS^2 V + r * S * d/dS V - r * V = 0
 
-        # get d2ds2
+        if volatility.size == 1:
+            volatility = np.ones(length) * volatility
 
-        # set up matrix A
+        # S vector
+        S = np.linspace(option.underlying_asset.price * 0.1, option.underlying_asset.price * 10, length)
 
-        # set up matrix B
+        V = np.zeros((time_length, length))
 
-        # solve for V at each time step
+        for i in range(length):
+            V[i, -1] = option.payoff(S[i]);
 
-        return
+
+        for it in range(time_length - 2, -1, -1):
+            f_update = (0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) @ V[it + 1, :] + rate_of_interest * S * dds_matrix(length, ds) @ V[it + 1, :] - rate_of_interest * V[it + 1, :])  
+            b_update = (0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) @ V[it, :] + rate_of_interest * S * dds_matrix(length, ds) @ V[it, :] - rate_of_interest * V[it, :])
+            
+            V[it, :] = V[it + 1, :] + dt * f_update 
+
+        return V

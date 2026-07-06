@@ -44,6 +44,7 @@ class simulation:
             diffusion_term = self.volatility[i-1] * normal_set[i-1] * sqrt_dt
             out_value[i] = out_value[i-1] * np.exp(drift_term + diffusion_term)
         return time, out_value
+    
     def forward_vectorised(self):
         dt = self.dt
         time = np.arange(self.t0, self.T, self.dt, dtype=np.float64) 
@@ -61,6 +62,13 @@ class simulation:
         out_value = sp.linalg.spsolve(M, b)
         
         return time, out_value
+    
+    def forward_euler_murakawa(self):
+        pass
+
+    def forward_milstein(self):
+        pass
+    
     def _time_derivative_operator(self, dt, numel):
         D = sp.eye(numel) - sp.diags(np.ones(numel-1), -1)/dt
         return sp.csr_matrix(D)
