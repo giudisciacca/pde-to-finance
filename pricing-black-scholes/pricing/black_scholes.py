@@ -89,9 +89,11 @@ class solver:
 
 
         for it in range(time_length - 2, -1, -1):
-            f_update = (0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) @ V[it + 1, :] + rate_of_interest * S * dds_matrix(length, ds) @ V[it + 1, :] - rate_of_interest * V[it + 1, :])  
-            b_update = (0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) @ V[it, :] + rate_of_interest * S * dds_matrix(length, ds) @ V[it, :] - rate_of_interest * V[it, :])
-            
+            A = 0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) + rate_of_interest * S * dds_matrix(length, ds) - rate_of_interest * np.identity(length)
+            f_update = A@V[it + 1, :]  
+             
             V[it, :] = V[it + 1, :] + dt * f_update 
+            # implicit update
+            V[it, :] = np.linalg.solve(np.identity(length) - dt * theta * A, V[it+1, :])
 
         return V
