@@ -87,13 +87,9 @@ class solver:
         for i in range(length):
             V[i, -1] = option.payoff(S[i]);
 
-
+        I = np.identity(length)
         for it in range(time_length - 2, -1, -1):
-            A = 0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) + rate_of_interest * S * dds_matrix(length, ds) - rate_of_interest * np.identity(length)
-            f_update = A@V[it + 1, :]  
-             
-            V[it, :] = V[it + 1, :] + dt * f_update 
-            # implicit update
-            V[it, :] = np.linalg.solve(np.identity(length) - dt * theta * A, V[it+1, :])
-
+            A = 0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) + rate_of_interest * S * dds_matrix(length, ds) - rate_of_interest 
+            V[it, :] = V[it + 1, :] + dt*(theta *  A @ V[it + 1, :] + (1 - theta) * np.linalg.inv(I -dt*A) @ V[it, :] )
+            
         return V
