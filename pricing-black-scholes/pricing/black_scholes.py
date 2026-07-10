@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.special
 from  pricing.options_classes import Option, Asset
+import pricing.market_data as market_data
+
 
 class BlackScholes:
     """
@@ -38,12 +40,13 @@ class BlackScholes:
 
     def numerical_put(self):
         pass
+        #eturn solver.full_discretization_solver(time_length, length, dt, ds, volatility, rate_of_interest, self.option, theta = 0.5   )
 
     def numerical_call(self):
         pass
 
 def normal_cdf(x):
-    return 0.5 * (1 + scipy.special.erf(x / np.sqrt(2)))    
+       return 0.5 * (1 + scipy.special.erf(x / np.sqrt(2)))    
 
 
 def ddt_matrix(length, dt):
@@ -68,8 +71,6 @@ class solver:
     def __init__(self):
         return
 
-    def crank_nicolson_solver(length, dt, ds, volatility, rate_of_interest, option):
-        pass
 
 
 
@@ -93,3 +94,22 @@ class solver:
             V[it, :] = V[it + 1, :] + dt*(theta *  A @ V[it + 1, :] + (1 - theta) * np.linalg.inv(I -dt*A) @ V[it, :] )
             
         return V
+
+    def montecarlo(self, time_length, length, dt, ds, volatility, rate_of_interest, option, theta = 0.5   ):
+
+        input_kwargs = {"volatility": 0.005,
+                "drift" : 0.000002,
+                "S0" : 100,
+                "t0" : 0,
+                "T" : 3600*24,
+                "dt" : 60}
+
+        sim = market_data.simulation(**input_kwargs)
+        t,val = sim.forward()
+        visual.plot_signal(t,val)
+        avg_val = np.zeros_like(val)
+        M = 100
+        for i in range(M):
+            t,val = sim.forward()
+            avg_val += val/M
+        return
