@@ -78,7 +78,9 @@ class solver:
         # d/dt V + 0.5* volatility^2 * S^2 * d^2/dS^2 V + r * S * d/dS V - r * V = 0
 
         if volatility.size == 1:
-            volatility = np.ones(length) * volatility
+            volatility = np.ones(length) * volatility\
+        if rate_of_interest.size == 1:
+            rate_of_interest = np.ones(length) * rate_of_interest
 
         # S vector
         S = np.linspace(option.underlying_asset.price * 0.1, option.underlying_asset.price * 10, length)
@@ -90,26 +92,25 @@ class solver:
 
         I = np.identity(length)
         for it in range(time_length - 2, -1, -1):
-            A = 0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) + rate_of_interest * S * dds_matrix(length, ds) - rate_of_interest 
+            A = 0.5 * volatility[it] ** 2 * S ** 2 * d2ds2_matrix(length, ds) + rate_of_interest * S * dds_matrix(length, ds) - rate_of_interest[it] 
             V[it, :] = V[it + 1, :] + dt*(theta *  A @ V[it + 1, :] + (1 - theta) * np.linalg.inv(I -dt*A) @ V[it, :] )
             
         return V
 
-    def montecarlo(self, time_length, length, dt, ds, volatility, rate_of_interest, option, theta = 0.5   ):
+    def montecarlo(self, nsamples, time_length, length, dt,S0, drift, volatility, rate_of_interest, option, theta = 0.5   ):
 
-        input_kwargs = {"volatility": 0.005,
-                "drift" : 0.000002,
-                "S0" : 100,
+        input_kwargs = {"volatility": volatility,
+                "drift" : drift,
+                "S0" : S0,
                 "t0" : 0,
-                "T" : 3600*24,
-                "dt" : 60}
+                "T" : option.time_to_maturity,
+                "dt" : dt}
 
         sim = market_data.simulation(**input_kwargs)
-        t,val = sim.forward()
-        visual.plot_signal(t,val)
         avg_val = np.zeros_like(val)
-        M = 100
-        for i in range(M):
+        for i in range(nsamples):
             t,val = sim.forward()
-            avg_val += val/M
-        return
+            avg_val += val/nsamples
+
+        time_to_maturity = np.linspace(0, option.time_to_maturity, time_length)
+        return np.exp(rate_of_interest*time_to_maturity)*option.payoff(avg_val[-1])
