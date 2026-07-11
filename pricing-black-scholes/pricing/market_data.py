@@ -28,6 +28,9 @@ class simulation:
             out_value[i] =  out_value[i-1]*(1+self.drift*self.dt + self.volatility[i-1]*normal_set[i-1]*sqrt_dt)
         return time, out_value
     
+    def _next(self):
+        pass
+
     def forward(self):
         # dS = drift * S * dt + volatility * dX
         dt = self.dt
