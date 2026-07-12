@@ -1,6 +1,7 @@
 import yfinance as yf
 import numpy as np
 import scipy.sparse as sp
+import dataclasses
 
 class simulation:
     def __init__(self, volatility = 0, drift = 0, dt = 60, S0=1, t0= 0, T=3600):
@@ -12,27 +13,41 @@ class simulation:
         self.drift = drift
         self.dt = dt
         self.S0 = S0
+        self.Scurrent = S0
         self.t0 = t0
         self.T = T
     
     def forward_euler(self):
         # dS = drift * S * dt + volatility * dX
+        self._reset()
         time = np.arange(self.t0, self.T, self.dt, dtype=np.float64) 
         if np.isscalar(self.volatility):
             self.volatility = np.ones_like(time)*self.volatility    
-        sqrt_dt = np.sqrt(self.dt)
+
         out_value = np.zeros_like(time)
-        out_value[0] = self.S0
-        normal_set = np.random.randn(len(time))
+        out_value[0] = self.Scurrent
         for i in range(1,len(time)):
-            out_value[i] =  out_value[i-1]*(1+self.drift*self.dt + self.volatility[i-1]*normal_set[i-1]*sqrt_dt)
+            out_value[i] = self._next(volatility=self.volatility[i-1])
         return time, out_value
     
-    def _next(self):
-        pass
+    def _next(self,step='euler', volatility=None):
 
+        if step == 'euler':
+            out = self.Scurrent*(1+self.drift*self.dt + volatility*np.random.randn()*np.sqrt(self.dt))
+        elif step == 'milstein':
+            out = self.Scurrent*(1+self.drift*self.dt + volatility*np.random.randn()*np.sqrt(self.dt) + 0.5*self.volatility**2*(np.random.randn()**2-1)*self.dt)
+        else:
+            raise NotImplementedError("Only euler and milstein steps are implemented.")
+        self.Scurrent = out
+        return out
+
+    def _reset(self):
+        self.Scurrent = self.S0
+        return
+    
     def forward(self):
         # dS = drift * S * dt + volatility * dX
+        self._reset()
         dt = self.dt
         time = np.arange(self.t0, self.T, dt, dtype=np.float64) 
         if np.isscalar(self.volatility):
@@ -45,7 +60,7 @@ class simulation:
             
             drift_term = (self.drift - 0.5 * self.volatility[i-1] ** 2) * dt
             diffusion_term = self.volatility[i-1] * normal_set[i-1] * sqrt_dt
-            out_value[i] = out_value[i-1] * np.exp(drift_term + diffusion_term)
+            out_value[i] = self._next(volatility=self.volatility[i-1]) #out_value[i-1] * np.exp(drift_term + diffusion_term)
         return time, out_value
     
     def forward_vectorised(self):

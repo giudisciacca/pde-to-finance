@@ -67,18 +67,18 @@ def d2ds2_matrix(length, ds):
     return d2ds2
     
 
-class solver:
+class bs_solver:
     def __init__(self):
         return
 
 
 
 
-    def full_discretization_solver(time_length, length, dt, ds, volatility, rate_of_interest, option, theta = 0.5   ):
+    def finite_difference_solver(self, time_length, length, dt, ds, volatility, rate_of_interest, option, theta = 0.5   ):
         # d/dt V + 0.5* volatility^2 * S^2 * d^2/dS^2 V + r * S * d/dS V - r * V = 0
 
         if volatility.size == 1:
-            volatility = np.ones(length) * volatility\
+            volatility = np.ones(length) * volatility
         if rate_of_interest.size == 1:
             rate_of_interest = np.ones(length) * rate_of_interest
 
@@ -97,7 +97,7 @@ class solver:
             
         return V
 
-    def montecarlo(self, nsamples, time_length, length, dt,S0, drift, volatility, rate_of_interest, option, theta = 0.5   ):
+    def montecarlo(self, nsamples, time_length, length, dt, S0, drift, volatility, rate_of_interest, option ):
 
         input_kwargs = {"volatility": volatility,
                 "drift" : drift,
@@ -107,10 +107,11 @@ class solver:
                 "dt" : dt}
 
         sim = market_data.simulation(**input_kwargs)
-        avg_val = np.zeros_like(val)
-        for i in range(nsamples):
+        t,val = sim.forward()
+        avg_val = val/nsamples
+        for i in range(1,nsamples):
             t,val = sim.forward()
             avg_val += val/nsamples
 
-        time_to_maturity = np.linspace(0, option.time_to_maturity, time_length)
-        return np.exp(rate_of_interest*time_to_maturity)*option.payoff(avg_val[-1])
+        #time_to_maturity = np.linspace(0, option.time_to_maturity, time_length)
+        return np.exp(-rate_of_interest*option.time_to_maturity)*option.payoff(avg_val[:])
