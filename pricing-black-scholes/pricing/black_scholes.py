@@ -114,4 +114,4 @@ class bs_solver:
             avg_val += val/nsamples
 
         #time_to_maturity = np.linspace(0, option.time_to_maturity, time_length)
-        return np.exp(-rate_of_interest*option.time_to_maturity)*option.payoff(avg_val[:])
+        return np.exp(-rate_of_interest*option.time_to_maturity)*option.payoff(avg_val[-1])
